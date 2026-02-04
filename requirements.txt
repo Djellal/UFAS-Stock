@@ -1,0 +1,9 @@
+asgiref==3.11.1
+Django==6.0.2
+sqlparse==0.5.5
+django-crispy-forms==2.4
+crispy-bootstrap5==2025.4
+Pillow>=11.0.0
+WeasyPrint==65.1
+openpyxl==3.1.5
+django-filter==25.1

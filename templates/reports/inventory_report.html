@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تقرير الجرد{% endblock %}
+{% block page_title %}تقرير جرد المخزون{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card blue">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-box"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.total|intcomma }}</h4>
+                    <small class="text-muted">إجمالي العناصر</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card green">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-check-circle"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.available|intcomma }}</h4>
+                    <small class="text-muted">متوفر</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card orange">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-arrow-repeat"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.assigned|intcomma }}</h4>
+                    <small class="text-muted">مسلم</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card red">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-currency-dollar"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.total_value|floatformat:0|intcomma }}</h4>
+                    <small class="text-muted">القيمة الإجمالية (دج)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table me-2"></i> تفاصيل الجرد</span>
+        <div class="d-flex gap-2">
+            <a href="{% url 'inventory_report_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-danger" target="_blank">
+                <i class="bi bi-file-pdf"></i> PDF
+            </a>
+            <a href="{% url 'inventory_report_excel' %}?{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-file-excel"></i> Excel
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Filters -->
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">-- الحالة --</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if request.GET.status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">-- الصنف --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.pk }}" {% if request.GET.category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">تصفية</button>
+            </div>
+        </form>
+        
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>رقم الجرد</th>
+                        <th>الرقم التسلسلي</th>
+                        <th>المنتج</th>
+                        <th>الصنف</th>
+                        <th>الحالة</th>
+                        <th>حالة المادة</th>
+                        <th>المصلحة</th>
+                        <th>السعر</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><code>{{ item.inventory_number }}</code></td>
+                        <td>{{ item.serial_number|default:"-" }}</td>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.product.category.name|default:"-" }}</td>
+                        <td>
+                            {% if item.status == 'available' %}
+                            <span class="badge bg-success">متوفر</span>
+                            {% elif item.status == 'assigned' %}
+                            <span class="badge bg-warning text-dark">مسلم</span>
+                            {% elif item.status == 'disposed' %}
+                            <span class="badge bg-danger">متلف</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.get_condition_display }}</td>
+                        <td>{{ item.assigned_to.name|default:"-" }}</td>
+                        <td>{{ item.purchase_price|intcomma }} دج</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">لا توجد بيانات</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

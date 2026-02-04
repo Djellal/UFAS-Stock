@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}وصل إتلاف - {{ voucher.voucher_number }}{% endblock %}
+{% block page_title %}تفاصيل وصل الإتلاف{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i> معلومات الوصل
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><th>رقم الوصل:</th><td><code class="fs-5">{{ voucher.voucher_number }}</code></td></tr>
+                    <tr><th>التاريخ:</th><td>{{ voucher.date }}</td></tr>
+                    <tr><th>سبب الإتلاف:</th><td>{{ voucher.get_disposal_reason_display }}</td></tr>
+                    <tr><th>تاريخ الإتلاف:</th><td>{{ voucher.disposal_date|default:"-" }}</td></tr>
+                    <tr>
+                        <th>الحالة:</th>
+                        <td>
+                            {% if voucher.status == 'confirmed' %}
+                            <span class="badge bg-success fs-6">مؤكد</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark fs-6">{{ voucher.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                {% if voucher.disposal_details %}
+                <hr>
+                <p><strong>تفاصيل الإتلاف:</strong><br>{{ voucher.disposal_details }}</p>
+                {% endif %}
+                {% if voucher.committee_members %}
+                <hr>
+                <p><strong>أعضاء اللجنة:</strong><br>{{ voucher.committee_members }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="d-flex flex-column gap-2">
+            <a href="{% url 'voucher_pdf' 'disposal' voucher.pk %}" class="btn btn-outline-danger" target="_blank">
+                <i class="bi bi-file-pdf me-1"></i> طباعة PDF
+            </a>
+            <a href="{% url 'disposal_voucher_list' %}" class="btn btn-outline-secondary">العودة للقائمة</a>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list me-2"></i> المواد المتلفة
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>المنتج</th>
+                            <th>الكمية</th>
+                            <th>وصف التلف</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.damage_description|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

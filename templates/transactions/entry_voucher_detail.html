@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}وصل دخول - {{ voucher.voucher_number }}{% endblock %}
+{% block page_title %}تفاصيل وصل الدخول{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i> معلومات الوصل
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th>رقم الوصل:</th>
+                        <td><code class="fs-5">{{ voucher.voucher_number }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>التاريخ:</th>
+                        <td>{{ voucher.date }}</td>
+                    </tr>
+                    <tr>
+                        <th>المورد:</th>
+                        <td>{{ voucher.supplier.name|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>رقم الفاتورة:</th>
+                        <td>{{ voucher.invoice_number|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>تاريخ الفاتورة:</th>
+                        <td>{{ voucher.invoice_date|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>الحالة:</th>
+                        <td>
+                            {% if voucher.status == 'confirmed' %}
+                            <span class="badge bg-success fs-6">مؤكد</span>
+                            {% elif voucher.status == 'draft' %}
+                            <span class="badge bg-warning text-dark fs-6">مسودة</span>
+                            {% else %}
+                            <span class="badge bg-secondary fs-6">{{ voucher.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>أنشئ بواسطة:</th>
+                        <td>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</td>
+                    </tr>
+                </table>
+                {% if voucher.notes %}
+                <hr>
+                <p class="mb-0"><strong>ملاحظات:</strong><br>{{ voucher.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="d-flex flex-column gap-2">
+            {% if voucher.status == 'draft' %}
+            <a href="{% url 'entry_voucher_confirm' voucher.pk %}" class="btn btn-success" onclick="return confirm('هل تريد تأكيد هذا الوصل؟')">
+                <i class="bi bi-check-circle me-1"></i> تأكيد الوصل
+            </a>
+            {% endif %}
+            <a href="{% url 'voucher_pdf' 'entry' voucher.pk %}" class="btn btn-outline-danger" target="_blank">
+                <i class="bi bi-file-pdf me-1"></i> طباعة PDF
+            </a>
+            <a href="{% url 'entry_voucher_list' %}" class="btn btn-outline-secondary">العودة للقائمة</a>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list me-2"></i> المواد
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الكمية</th>
+                                <th>سعر الوحدة</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'product_detail' item.product.pk %}">{{ item.product.name }}</a>
+                                    {% if item.product.is_asset %}
+                                    <span class="badge bg-primary ms-1">مجرود</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.unit_price|intcomma }} دج</td>
+                                <td>{{ item.total_price|intcomma }} دج</td>
+                            </tr>
+                            {% if item.assets.exists %}
+                            <tr class="table-light">
+                                <td colspan="4" class="ps-4">
+                                    <small class="text-muted">الأصول المسجلة:</small>
+                                    <ul class="mb-0 list-unstyled">
+                                        {% for asset in item.assets.all %}
+                                        <li>
+                                            <a href="{% url 'item_detail' asset.inventory_item.pk %}">
+                                                <code>{{ asset.inventory_item.inventory_number }}</code>
+                                            </a>
+                                            {% if asset.inventory_item.serial_number %}
+                                            - {{ asset.inventory_item.serial_number }}
+                                            {% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-secondary">
+                            <tr>
+                                <td colspan="3" class="text-start"><strong>الإجمالي الكلي:</strong></td>
+                                <td><strong>{{ voucher.total_amount|intcomma }} دج</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

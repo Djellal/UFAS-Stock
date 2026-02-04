@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تقرير حركة المواد{% endblock %}
+{% block page_title %}تقرير حركة المواد{% endblock %}
+
+{% block content %}
+<!-- Summary -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card green">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-box-arrow-in-down"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.entries_count|intcomma }}</h4>
+                    <small class="text-muted">وصلات الدخول</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card orange">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-box-arrow-up"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.exits_count|intcomma }}</h4>
+                    <small class="text-muted">وصلات الإخراج</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card blue">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-arrow-return-left"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.returns_count|intcomma }}</h4>
+                    <small class="text-muted">وصلات الإرجاع</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">من تاريخ</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">إلى تاريخ</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-secondary">تصفية</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Entries -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-box-arrow-in-down me-2 text-success"></i> وصلات الدخول
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>رقم الوصل</th>
+                        <th>التاريخ</th>
+                        <th>المورد</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in entries %}
+                    <tr>
+                        <td><a href="{% url 'entry_voucher_detail' v.pk %}">{{ v.voucher_number }}</a></td>
+                        <td>{{ v.date }}</td>
+                        <td>{{ v.supplier.name|default:"-" }}</td>
+                        <td><span class="badge bg-{% if v.status == 'confirmed' %}success{% else %}warning{% endif %}">{{ v.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">لا توجد وصلات</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Exits -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-box-arrow-up me-2 text-warning"></i> وصلات الإخراج
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>رقم الوصل</th>
+                        <th>التاريخ</th>
+                        <th>المصلحة</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in exits %}
+                    <tr>
+                        <td><a href="{% url 'exit_voucher_detail' v.pk %}">{{ v.voucher_number }}</a></td>
+                        <td>{{ v.date }}</td>
+                        <td>{{ v.department.name|default:"-" }}</td>
+                        <td><span class="badge bg-{% if v.status == 'confirmed' %}success{% else %}warning{% endif %}">{{ v.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">لا توجد وصلات</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Returns -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-arrow-return-left me-2 text-info"></i> وصلات الإرجاع
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>رقم الوصل</th>
+                        <th>التاريخ</th>
+                        <th>المصلحة</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in returns %}
+                    <tr>
+                        <td><a href="{% url 'return_voucher_detail' v.pk %}">{{ v.voucher_number }}</a></td>
+                        <td>{{ v.date }}</td>
+                        <td>{{ v.department.name|default:"-" }}</td>
+                        <td><span class="badge bg-{% if v.status == 'confirmed' %}success{% else %}warning{% endif %}">{{ v.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">لا توجد وصلات</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

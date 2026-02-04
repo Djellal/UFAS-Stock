@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ product.name }}{% endblock %}
+{% block page_title %}تفاصيل المنتج{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i> معلومات المنتج
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><th>الرمز:</th><td><code>{{ product.code }}</code></td></tr>
+                    <tr><th>الاسم:</th><td>{{ product.name }}</td></tr>
+                    <tr><th>الصنف:</th><td>{{ product.category.name|default:"-" }}</td></tr>
+                    <tr><th>الطبيعة:</th><td>{{ product.get_nature_display }}</td></tr>
+                    <tr><th>الوحدة:</th><td>{{ product.get_unit_display }}</td></tr>
+                    <tr><th>السعر:</th><td>{{ product.unit_price|intcomma }} دج</td></tr>
+                    <tr><th>الحد الأدنى:</th><td>{{ product.min_stock }}</td></tr>
+                </table>
+                {% if product.description %}
+                <hr>
+                <p class="mb-0"><strong>الوصف:</strong><br>{{ product.description }}</p>
+                {% endif %}
+                <hr>
+                <a href="{% url 'product_edit' product.pk %}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil me-1"></i> تعديل
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        {% if product.is_asset and items %}
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-upc-scan me-2"></i> عناصر المخزون ({{ items.count }})
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>رقم الجرد</th>
+                                <th>الرقم التسلسلي</th>
+                                <th>الحالة</th>
+                                <th>المصلحة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td><a href="{% url 'item_detail' item.pk %}">{{ item.inventory_number }}</a></td>
+                                <td>{{ item.serial_number|default:"-" }}</td>
+                                <td>
+                                    {% if item.status == 'available' %}
+                                    <span class="badge bg-success">متوفر</span>
+                                    {% elif item.status == 'assigned' %}
+                                    <span class="badge bg-warning">مسلم</span>
+                                    {% elif item.status == 'disposed' %}
+                                    <span class="badge bg-danger">متلف</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.assigned_to.name|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% elif movements %}
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-arrow-left-right me-2"></i> حركات المخزون
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>النوع</th>
+                                <th>الكمية</th>
+                                <th>المرجع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mv in movements %}
+                            <tr>
+                                <td>{{ mv.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>{{ mv.get_movement_type_display }}</td>
+                                <td>
+                                    {% if mv.quantity > 0 %}
+                                    <span class="text-success">+{{ mv.quantity }}</span>
+                                    {% else %}
+                                    <span class="text-danger">{{ mv.quantity }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ mv.reference|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i> لا توجد بيانات إضافية لهذا المنتج
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ item.inventory_number }}{% endblock %}
+{% block page_title %}تفاصيل عنصر المخزون{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i> معلومات العنصر
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><th width="40%">رقم الجرد:</th><td><code class="fs-5">{{ item.inventory_number }}</code></td></tr>
+                    <tr><th>الرقم التسلسلي:</th><td>{{ item.serial_number|default:"-" }}</td></tr>
+                    <tr><th>الباركود:</th><td>{{ item.barcode|default:"-" }}</td></tr>
+                    <tr><th>المنتج:</th><td><a href="{% url 'product_detail' item.product.pk %}">{{ item.product.name }}</a></td></tr>
+                    <tr><th>الصنف:</th><td>{{ item.product.category.name|default:"-" }}</td></tr>
+                    <tr>
+                        <th>الحالة:</th>
+                        <td>
+                            {% if item.status == 'available' %}
+                            <span class="badge bg-success fs-6">متوفر</span>
+                            {% elif item.status == 'assigned' %}
+                            <span class="badge bg-warning text-dark fs-6">مسلم</span>
+                            {% elif item.status == 'maintenance' %}
+                            <span class="badge bg-info fs-6">صيانة</span>
+                            {% elif item.status == 'disposed' %}
+                            <span class="badge bg-danger fs-6">متلف</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr><th>حالة المادة:</th><td>{{ item.get_condition_display }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-calendar me-2"></i> معلومات الشراء والتعيين
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><th width="40%">تاريخ الشراء:</th><td>{{ item.purchase_date|default:"-" }}</td></tr>
+                    <tr><th>سعر الشراء:</th><td>{{ item.purchase_price|intcomma }} دج</td></tr>
+                    <tr><th>نهاية الضمان:</th><td>{{ item.warranty_end|default:"-" }}</td></tr>
+                    <tr><th>الموقع:</th><td>{{ item.location|default:"-" }}</td></tr>
+                    <tr><th>المصلحة المستفيدة:</th><td>{{ item.assigned_to.name|default:"-" }}</td></tr>
+                </table>
+                {% if item.notes %}
+                <hr>
+                <p class="mb-0"><strong>ملاحظات:</strong><br>{{ item.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <a href="{% url 'item_edit' item.pk %}" class="btn btn-primary">
+        <i class="bi bi-pencil me-1"></i> تعديل
+    </a>
+    <a href="{% url 'item_list' %}" class="btn btn-outline-secondary">العودة للقائمة</a>
+</div>
+{% endblock %}

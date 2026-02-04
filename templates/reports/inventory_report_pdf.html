@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تقرير جرد المخزون</title>
+    <style>
+        @page { size: A4 landscape; margin: 1cm; }
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 10px;
+            direction: rtl;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header h2 { margin: 5px 0; font-size: 14px; color: #666; }
+        .meta { margin-bottom: 15px; font-size: 9px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px 8px;
+            text-align: right;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 1cm;
+            width: 100%;
+            text-align: center;
+            font-size: 8px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>جامعة فرحات عباس سطيف 1</h1>
+        <h2>تقرير جرد المخزون</h2>
+        {% if tenant %}<p>{{ tenant.name }}</p>{% endif %}
+    </div>
+    
+    <div class="meta">
+        <strong>تاريخ التقرير:</strong> {{ date|date:"Y-m-d H:i" }}
+        | <strong>إجمالي العناصر:</strong> {{ summary.total }}
+        | <strong>القيمة الإجمالية:</strong> {{ summary.total_value|floatformat:2 }} دج
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>رقم الجرد</th>
+                <th>الرقم التسلسلي</th>
+                <th>المنتج</th>
+                <th>الصنف</th>
+                <th>الحالة</th>
+                <th>حالة المادة</th>
+                <th>المصلحة</th>
+                <th>السعر (دج)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.inventory_number }}</td>
+                <td>{{ item.serial_number|default:"-" }}</td>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.product.category.name|default:"-" }}</td>
+                <td>{{ item.get_status_display }}</td>
+                <td>{{ item.get_condition_display }}</td>
+                <td>{{ item.assigned_to.name|default:"-" }}</td>
+                <td>{{ item.purchase_price }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align: center;">لا توجد بيانات</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        UFAS-Stock - نظام إدارة المخزون والممتلكات | جامعة فرحات عباس سطيف 1
+    </div>
+</body>
+</html>

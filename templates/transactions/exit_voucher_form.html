@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<form method="post" id="voucherForm">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i> معلومات الوصل
+                </div>
+                <div class="card-body">
+                    {{ form|crispy }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-list me-2"></i> المواد</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
+                        <i class="bi bi-plus"></i> إضافة مادة
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="itemsTable">
+                            <thead>
+                                <tr>
+                                    <th width="60%">المنتج</th>
+                                    <th width="20%">الكمية</th>
+                                    <th width="20%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsBody">
+                                <tr class="item-row" data-index="0">
+                                    <td>
+                                        <select name="product_id" class="form-select product-select" required>
+                                            <option value="">-- اختر المنتج --</option>
+                                            {% for product in products %}
+                                            <option value="{{ product.pk }}" data-nature="{{ product.nature }}">
+                                                {{ product.code }} - {{ product.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="assets-container mt-2" style="display:none;"></div>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="quantity" class="form-control quantity-input" value="1" min="1" required>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check me-1"></i> حفظ وصل الإخراج
+                </button>
+                <a href="{% url 'exit_voucher_list' %}" class="btn btn-outline-secondary">إلغاء</a>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let rowIndex = 1;
+    
+    document.getElementById('addItemBtn').addEventListener('click', function() {
+        const tbody = document.getElementById('itemsBody');
+        const firstRow = tbody.querySelector('.item-row');
+        const newRow = firstRow.cloneNode(true);
+        
+        newRow.dataset.index = rowIndex;
+        newRow.querySelector('.product-select').value = '';
+        newRow.querySelector('.quantity-input').value = '1';
+        newRow.querySelector('.assets-container').innerHTML = '';
+        newRow.querySelector('.assets-container').style.display = 'none';
+        
+        tbody.appendChild(newRow);
+        rowIndex++;
+    });
+    
+    document.getElementById('itemsBody').addEventListener('click', function(e) {
+        if (e.target.closest('.remove-row')) {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length > 1) {
+                e.target.closest('.item-row').remove();
+            }
+        }
+    });
+    
+    document.getElementById('itemsBody').addEventListener('change', function(e) {
+        if (e.target.classList.contains('product-select')) {
+            const row = e.target.closest('.item-row');
+            const option = e.target.selectedOptions[0];
+            const nature = option.dataset.nature;
+            const assetsContainer = row.querySelector('.assets-container');
+            
+            if (nature === 'asset') {
+                // Show asset selection for assets
+                assetsContainer.innerHTML = '<div class="alert alert-info small py-2">سيتم تحديد الأصول المتاحة عند الحفظ</div>';
+                assetsContainer.style.display = 'block';
+            } else {
+                assetsContainer.innerHTML = '';
+                assetsContainer.style.display = 'none';
+            }
+        }
+    });
+</script>
+{% endblock %}

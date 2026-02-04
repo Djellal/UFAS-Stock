@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>وصل إتلاف - {{ voucher.voucher_number }}</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 11px; direction: rtl; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+        .header h1 { margin: 0; font-size: 16px; }
+        .header h2 { margin: 10px 0 5px; font-size: 20px; color: #dc2626; }
+        .voucher-number { font-size: 14px; font-weight: bold; }
+        .info-table { width: 100%; margin-bottom: 20px; }
+        .info-table td { padding: 5px; }
+        .info-table .label { font-weight: bold; width: 150px; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+        .items-table th { background: #f5f5f5; font-weight: bold; }
+        .signatures { margin-top: 50px; display: flex; justify-content: space-between; }
+        .signature-box { width: 30%; text-align: center; border-top: 1px solid #333; padding-top: 10px; }
+        .footer { position: fixed; bottom: 1cm; width: 100%; text-align: center; font-size: 8px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>جامعة فرحات عباس سطيف 1</h1>
+        {% if tenant %}<p>{{ tenant.name }}</p>{% endif %}
+        <h2>وصل إتلاف</h2>
+        <div class="voucher-number">رقم: {{ voucher.voucher_number }}</div>
+    </div>
+    
+    <table class="info-table">
+        <tr>
+            <td class="label">التاريخ:</td>
+            <td>{{ voucher.date }}</td>
+            <td class="label">سبب الإتلاف:</td>
+            <td>{{ voucher.get_disposal_reason_display }}</td>
+        </tr>
+        <tr>
+            <td class="label">تاريخ الإتلاف الفعلي:</td>
+            <td colspan="3">{{ voucher.disposal_date|default:"-" }}</td>
+        </tr>
+    </table>
+    
+    {% if voucher.disposal_details %}
+    <p><strong>تفاصيل الإتلاف:</strong> {{ voucher.disposal_details }}</p>
+    {% endif %}
+    
+    {% if voucher.committee_members %}
+    <p><strong>أعضاء اللجنة:</strong> {{ voucher.committee_members }}</p>
+    {% endif %}
+    
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>المنتج</th>
+                <th>الكمية</th>
+                <th>وصف التلف</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.damage_description|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="signatures">
+        <div class="signature-box">عضو اللجنة</div>
+        <div class="signature-box">عضو اللجنة</div>
+        <div class="signature-box">رئيس اللجنة</div>
+    </div>
+    
+    <div class="footer">UFAS-Stock - نظام إدارة المخزون | {% now "Y-m-d H:i" %}</div>
+</body>
+</html>

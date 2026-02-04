@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}المصالح{% endblock %}
+{% block page_title %}المصالح{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-building me-2"></i> قائمة المصالح</span>
+        <a href="{% url 'department_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> مصلحة جديدة
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="بحث..." value="{{ search }}">
+                    <button type="submit" class="btn btn-secondary">بحث</button>
+                </div>
+            </div>
+        </form>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>الرمز</th>
+                        <th>الاسم</th>
+                        <th>المسؤول</th>
+                        <th>الهاتف</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dept in departments %}
+                    <tr>
+                        <td><code>{{ dept.code|default:"-" }}</code></td>
+                        <td>{{ dept.name }}</td>
+                        <td>{{ dept.responsible_name|default:"-" }}</td>
+                        <td>{{ dept.phone|default:"-" }}</td>
+                        <td>
+                            {% if dept.is_active %}
+                            <span class="badge bg-success">نشطة</span>
+                            {% else %}
+                            <span class="badge bg-secondary">غير نشطة</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">لا توجد مصالح</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

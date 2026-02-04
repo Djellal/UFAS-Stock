@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تقرير المواد التالفة{% endblock %}
+{% block page_title %}تقرير المواد التالفة{% endblock %}
+
+{% block content %}
+<!-- Summary -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card red">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-file-x"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.disposal_vouchers|intcomma }}</h4>
+                    <small class="text-muted">وصلات الإتلاف</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card orange">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-box-seam"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.disposed_items|intcomma }}</h4>
+                    <small class="text-muted">عناصر متلفة</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card blue">
+            <div class="d-flex align-items-center">
+                <div class="icon"><i class="bi bi-currency-dollar"></i></div>
+                <div class="me-3">
+                    <h4 class="mb-0">{{ summary.total_value|floatformat:0|intcomma }}</h4>
+                    <small class="text-muted">القيمة المفقودة (دج)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disposal Vouchers -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-trash me-2 text-danger"></i> وصلات الإتلاف
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>رقم الوصل</th>
+                        <th>التاريخ</th>
+                        <th>سبب الإتلاف</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in disposals %}
+                    <tr>
+                        <td><a href="{% url 'disposal_voucher_detail' v.pk %}">{{ v.voucher_number }}</a></td>
+                        <td>{{ v.date }}</td>
+                        <td>{{ v.get_disposal_reason_display }}</td>
+                        <td><span class="badge bg-{% if v.status == 'confirmed' %}success{% else %}warning{% endif %}">{{ v.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">لا توجد وصلات</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Disposed Items -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-box-seam me-2"></i> العناصر المتلفة
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>رقم الجرد</th>
+                        <th>المنتج</th>
+                        <th>السعر</th>
+                        <th>حالة المادة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in disposed_items %}
+                    <tr>
+                        <td><code>{{ item.inventory_number }}</code></td>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.purchase_price|intcomma }} دج</td>
+                        <td><span class="badge bg-danger">{{ item.get_condition_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">لا توجد عناصر متلفة</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

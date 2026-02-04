@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}وصلات الدخول{% endblock %}
+{% block page_title %}وصلات الدخول{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-box-arrow-in-down me-2"></i> قائمة وصلات الدخول</span>
+        <a href="{% url 'entry_voucher_create' %}" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> وصل دخول جديد
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="رقم الوصل، المورد..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">-- الحالة --</option>
+                    <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>مسودة</option>
+                    <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>مؤكد</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>ملغى</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">بحث</button>
+            </div>
+        </form>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>رقم الوصل</th>
+                        <th>التاريخ</th>
+                        <th>المورد</th>
+                        <th>رقم الفاتورة</th>
+                        <th>الحالة</th>
+                        <th>أنشئ بواسطة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for voucher in vouchers %}
+                    <tr>
+                        <td><a href="{% url 'entry_voucher_detail' voucher.pk %}"><code>{{ voucher.voucher_number }}</code></a></td>
+                        <td>{{ voucher.date }}</td>
+                        <td>{{ voucher.supplier.name|default:"-" }}</td>
+                        <td>{{ voucher.invoice_number|default:"-" }}</td>
+                        <td>
+                            {% if voucher.status == 'confirmed' %}
+                            <span class="badge bg-success">مؤكد</span>
+                            {% elif voucher.status == 'draft' %}
+                            <span class="badge bg-warning text-dark">مسودة</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ voucher.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</td>
+                        <td>
+                            <a href="{% url 'entry_voucher_detail' voucher.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'voucher_pdf' 'entry' voucher.pk %}" class="btn btn-sm btn-outline-danger" target="_blank">
+                                <i class="bi bi-file-pdf"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">لا توجد وصلات دخول</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if vouchers.has_other_pages %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if vouchers.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ vouchers.previous_page_number }}">السابق</a>
+                </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">{{ vouchers.number }} من {{ vouchers.paginator.num_pages }}</span>
+                </li>
+                {% if vouchers.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ vouchers.next_page_number }}">التالي</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

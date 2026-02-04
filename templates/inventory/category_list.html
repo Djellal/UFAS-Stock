@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}الأصناف{% endblock %}
+{% block page_title %}الأصناف{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-folder me-2"></i> قائمة الأصناف</span>
+        <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> صنف جديد
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>الرمز</th>
+                        <th>الاسم</th>
+                        <th>الوصف</th>
+                        <th>عام</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td><code>{{ category.code }}</code></td>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.description|truncatewords:10|default:"-" }}</td>
+                        <td>
+                            {% if category.is_global %}
+                            <span class="badge bg-success">عام</span>
+                            {% else %}
+                            <span class="badge bg-secondary">خاص</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% for child in category.children.all %}
+                    <tr class="table-light">
+                        <td class="ps-4"><code>{{ child.code }}</code></td>
+                        <td class="ps-4">↳ {{ child.name }}</td>
+                        <td>{{ child.description|truncatewords:10|default:"-" }}</td>
+                        <td>
+                            {% if child.is_global %}
+                            <span class="badge bg-success">عام</span>
+                            {% else %}
+                            <span class="badge bg-secondary">خاص</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">لا توجد أصناف</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

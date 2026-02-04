@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}المنتجات{% endblock %}
+{% block page_title %}المنتجات{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-box me-2"></i> قائمة المنتجات</span>
+        <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> منتج جديد
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- Filters -->
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="بحث..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">-- جميع الأصناف --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.pk }}" {% if request.GET.category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="nature" class="form-select">
+                    <option value="">-- جميع الطبيعات --</option>
+                    <option value="asset" {% if request.GET.nature == 'asset' %}selected{% endif %}>مادة مجرودة</option>
+                    <option value="consumable" {% if request.GET.nature == 'consumable' %}selected{% endif %}>مادة مستهلكة</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">بحث</button>
+            </div>
+        </form>
+        
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>الرمز</th>
+                        <th>الاسم</th>
+                        <th>الصنف</th>
+                        <th>الطبيعة</th>
+                        <th>الوحدة</th>
+                        <th>السعر</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td><code>{{ product.code }}</code></td>
+                        <td>
+                            <a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a>
+                        </td>
+                        <td>{{ product.category.name|default:"-" }}</td>
+                        <td>
+                            {% if product.nature == 'asset' %}
+                            <span class="badge bg-primary">مجرودة</span>
+                            {% else %}
+                            <span class="badge bg-secondary">مستهلكة</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ product.get_unit_display }}</td>
+                        <td>{{ product.unit_price }} دج</td>
+                        <td>
+                            <a href="{% url 'product_edit' product.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">لا توجد منتجات</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if products.has_other_pages %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if products.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ products.previous_page_number }}&search={{ search }}">السابق</a>
+                </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">{{ products.number }} من {{ products.paginator.num_pages }}</span>
+                </li>
+                {% if products.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ products.next_page_number }}&search={{ search }}">التالي</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
