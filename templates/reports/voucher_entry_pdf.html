@@ -2,123 +2,162 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>وصل دخول - {{ voucher.voucher_number }}</title>
+    <title>وصل إدخال - {{ voucher.voucher_number }}</title>
     <style>
-        @page { size: A4; margin: 1.5cm; }
+        @page { size: A4; margin: 2cm; }
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 11px;
+            font-family: 'Amiri', 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
             direction: rtl;
+            line-height: 1.6;
         }
-        .header {
+        .header-table {
+            width: 100%;
+            margin-bottom: 15px;
+            border: none;
+        }
+        .header-table td {
+            vertical-align: top;
+            border: none;
+        }
+        .header-center {
             text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
+            font-size: 13px;
+            font-weight: bold;
         }
-        .header h1 { margin: 0; font-size: 16px; }
-        .header h2 { margin: 10px 0 5px; font-size: 20px; color: #2563eb; }
-        .voucher-number { font-size: 14px; font-weight: bold; color: #333; }
-        .info-table { width: 100%; margin-bottom: 20px; }
-        .info-table td { padding: 5px; }
-        .info-table .label { font-weight: bold; width: 120px; }
+        .header-right {
+            text-align: right;
+            font-size: 12px;
+        }
+        .title-box {
+            background-color: #d3d3d3;
+            text-align: center;
+            padding: 10px 20px;
+            margin: 20px auto;
+            width: 60%;
+            border: 1px solid #000;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .metadata-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        .metadata-right {
+            text-align: right;
+        }
+        .metadata-left {
+            text-align: left;
+        }
+        .metadata-container p {
+            margin: 3px 0;
+        }
         .items-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        .items-table th, .items-table td {
-            border: 1px solid #ddd;
+        .items-table th {
+            background-color: #f2f2f2;
+            border: 1px solid #000;
             padding: 8px;
-            text-align: right;
-        }
-        .items-table th { background: #f5f5f5; font-weight: bold; }
-        .items-table tfoot td { background: #f9f9f9; font-weight: bold; }
-        .signatures {
-            margin-top: 50px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .signature-box {
-            width: 30%;
             text-align: center;
-            border-top: 1px solid #333;
-            padding-top: 10px;
+            font-weight: bold;
+        }
+        .items-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+        .signature {
+            margin-top: 60px;
+            text-align: left;
+            padding-left: 50px;
         }
         .footer {
             position: fixed;
             bottom: 1cm;
-            width: 100%;
-            text-align: center;
-            font-size: 8px;
-            color: #999;
+            left: 0;
+            right: 0;
+            text-align: left;
+            font-size: 10px;
+            padding-left: 2cm;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>جامعة فرحات عباس سطيف 1</h1>
-        {% if tenant %}<p>{{ tenant.name }}</p>{% endif %}
-        <h2>وصل دخول</h2>
-        <div class="voucher-number">رقم: {{ voucher.voucher_number }}</div>
-    </div>
-    
-    <table class="info-table">
+    <table class="header-table">
         <tr>
-            <td class="label">التاريخ:</td>
-            <td>{{ voucher.date }}</td>
-            <td class="label">المورد:</td>
-            <td>{{ voucher.supplier.name|default:"-" }}</td>
-        </tr>
-        <tr>
-            <td class="label">رقم الفاتورة:</td>
-            <td>{{ voucher.invoice_number|default:"-" }}</td>
-            <td class="label">تاريخ الفاتورة:</td>
-            <td>{{ voucher.invoice_date|default:"-" }}</td>
+            <td width="40%" class="header-right">
+                جامعة فرحات عباس سطيف<br>
+                الأمانة العامة<br>
+                {% if tenant %}{{ tenant.name }}{% else %}المديرية الفرعية للوسائل و الصيانة{% endif %}
+            </td>
+            <td width="60%" class="header-center">
+                الجمهورية الجزائرية الديمقراطية الشعبية<br>
+                وزارة التعليم العالي و البحث العلمي
+            </td>
         </tr>
     </table>
+    
+    <div class="title-box">
+        وصل إدخال رقم : {{ voucher.voucher_number }}
+    </div>
+    
+    <div class="metadata-container">
+        <div class="metadata-left">
+            التاريخ: {{ voucher.date }}
+        </div>
+        <div class="metadata-right">
+            <p>المورد: {{ voucher.supplier.name|default:"-" }}</p>
+            <p>العنوان: {{ voucher.supplier.address|default:"-" }}</p>
+            <p>رقم الفاتورة: {{ voucher.invoice_number|default:"-" }}</p>
+        </div>
+    </div>
     
     <table class="items-table">
         <thead>
             <tr>
-                <th>#</th>
-                <th>المنتج</th>
+                <th>الرمز</th>
+                <th>التعيين</th>
+                <th>الوحدة</th>
                 <th>الكمية</th>
-                <th>سعر الوحدة</th>
-                <th>الإجمالي</th>
+                <th>السعر الوحدوي</th>
+                <th>المبلغ الاجمالي</th>
+                <th>ملاحظات</th>
             </tr>
         </thead>
         <tbody>
             {% for item in items %}
             <tr>
-                <td>{{ forloop.counter }}</td>
+                <td>{{ item.product.code|default:forloop.counter }}</td>
                 <td>{{ item.product.name }}</td>
+                <td>{{ item.product.unit|default:"وحدة" }}</td>
                 <td>{{ item.quantity }}</td>
-                <td>{{ item.unit_price }} دج</td>
-                <td>{{ item.total_price }} دج</td>
+                <td>{{ item.unit_price }}</td>
+                <td>{{ item.total_price }}</td>
+                <td>{{ item.notes|default:"" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">لا توجد عناصر</td>
             </tr>
             {% endfor %}
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4">الإجمالي الكلي</td>
-                <td>{{ voucher.total_amount }} دج</td>
-            </tr>
-        </tfoot>
     </table>
     
     {% if voucher.notes %}
     <p><strong>ملاحظات:</strong> {{ voucher.notes }}</p>
     {% endif %}
     
-    <div class="signatures">
-        <div class="signature-box">المسلم</div>
-        <div class="signature-box">المستلم</div>
-        <div class="signature-box">المسؤول</div>
+    <div class="signature">
+        أمين المخزن
     </div>
     
     <div class="footer">
-        UFAS-Stock - نظام إدارة المخزون | تاريخ الطباعة: {% now "Y-m-d H:i" %}
+        1
     </div>
 </body>
 </html>
