@@ -2,8 +2,10 @@
 Inventory models - Categories, Products, Items
 نماذج المخزون - الأصناف والمنتجات والمواد
 """
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MinValueValidator
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from decimal import Decimal
 
 
@@ -278,3 +280,62 @@ class StockMovement(models.Model):
     
     def __str__(self):
         return f"{self.product.name} - {self.get_movement_type_display()} - {self.quantity}"
+
+
+def update_product_stock_quantity(product_id):
+    """
+    Update stock_quantity for any product based on its nature.
+    - For assets: counts available InventoryItems
+    - For consumables: sums all StockMovement quantities
+    """
+    from inventory.models import Product
+    try:
+        product = Product.objects.get(pk=product_id)
+        if product.is_asset:
+            # For assets: count available items
+            available_count = product.items.filter(status='available').count()
+            product.stock_quantity = available_count
+        else:
+            # For consumables: sum all movement quantities
+            total_movement = product.stock_movements.aggregate(
+                total=models.Sum('quantity')
+            )['total'] or 0
+            product.stock_quantity = total_movement
+        product.save(update_fields=['stock_quantity', 'updated_at'])
+    except Product.DoesNotExist:
+        pass
+
+
+@receiver(post_save, sender=InventoryItem)
+def inventory_item_post_save(sender, instance, **kwargs):
+    """
+    Signal to update product stock_quantity when an InventoryItem is saved.
+    For assets: recalculates based on available items.
+    """
+    update_product_stock_quantity(instance.product_id)
+
+
+@receiver(post_delete, sender=InventoryItem)
+def inventory_item_post_delete(sender, instance, **kwargs):
+    """
+    Signal to update product stock_quantity when an InventoryItem is deleted.
+    """
+    update_product_stock_quantity(instance.product_id)
+
+
+@receiver(post_save, sender=StockMovement)
+def stock_movement_post_save(sender, instance, **kwargs):
+    """
+    Signal to update product stock_quantity when a StockMovement is saved.
+    For consumables: recalculates from all movements.
+    For assets: triggers recalculation based on available items.
+    """
+    update_product_stock_quantity(instance.product_id)
+
+
+@receiver(post_delete, sender=StockMovement)
+def stock_movement_post_delete(sender, instance, **kwargs):
+    """
+    Signal to update product stock_quantity when a StockMovement is deleted.
+    """
+    update_product_stock_quantity(instance.product_id)

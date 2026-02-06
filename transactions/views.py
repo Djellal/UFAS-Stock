@@ -20,6 +20,17 @@ from .forms import EntryVoucherForm, ExitVoucherForm, ReturnVoucherForm, Disposa
 from inventory.models import Product, InventoryItem, StockMovement, Department, Supplier
 
 
+def generate_unique_inventory_number(tenant, product_code):
+    """Generate a unique inventory number that doesn't exist for the tenant"""
+    import random
+    import string
+    while True:
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        inv_num = f"INV-{product_code}-{timezone.now().strftime('%Y%m%d')}-{random_suffix}"
+        if not InventoryItem.objects.filter(inventory_number=inv_num, tenant=tenant).exists():
+            return inv_num
+
+
 def get_tenant_queryset(request, model):
     """Get queryset filtered by tenant"""
     if request.user.is_super_admin:
@@ -122,8 +133,17 @@ def entry_voucher_create(request):
                             inventory_numbers = request.POST.getlist(f'inventory_number_{i}')
                             serial_numbers = request.POST.getlist(f'serial_number_{i}')
                             
+                            # Track used inventory numbers in this form submission
+                            used_inventory_numbers = set()
+                            
                             for j in range(quantity):
-                                inv_num = inventory_numbers[j] if j < len(inventory_numbers) else f"INV-{timezone.now().strftime('%Y%m%d%H%M%S')}-{j}"
+                                inv_num = inventory_numbers[j] if j < len(inventory_numbers) else generate_unique_inventory_number(tenant, product.code)
+                                
+                                # Skip if already used in this form
+                                while inv_num in used_inventory_numbers:
+                                    inv_num = generate_unique_inventory_number(tenant, product.code)
+                                
+                                used_inventory_numbers.add(inv_num)
                                 ser_num = serial_numbers[j] if j < len(serial_numbers) else ''
                                 
                                 inv_item = InventoryItem.objects.create(
