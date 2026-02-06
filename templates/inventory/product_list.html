@@ -50,6 +50,7 @@
                         <th>الصنف</th>
                         <th>الطبيعة</th>
                         <th>الوحدة</th>
+                        <th>الكمية</th>
                         <th>السعر</th>
                         <th>الإجراءات</th>
                     </tr>
@@ -70,6 +71,7 @@
                             {% endif %}
                         </td>
                         <td>{{ product.get_unit_display }}</td>
+                        <td>{{ product.stock_quantity|default:0 }}</td>
                         <td>{{ product.unit_price }} دج</td>
                         <td>
                             <a href="{% url 'product_edit' product.pk %}" class="btn btn-sm btn-outline-primary">
@@ -79,7 +81,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">لا توجد منتجات</td>
+                        <td colspan="8" class="text-center text-muted py-4">لا توجد منتجات</td>
                     </tr>
                     {% endfor %}
                 </tbody>

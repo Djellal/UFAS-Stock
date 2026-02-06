@@ -136,6 +136,8 @@ class Product(models.Model):
         validators=[MinValueValidator(Decimal('0.00'))]
     )
     min_stock = models.PositiveIntegerField('الحد الأدنى للمخزون', default=0)
+    initial_quantity = models.PositiveIntegerField('الكمية الأولية', default=0)
+    stock_quantity = models.PositiveIntegerField('الكمية المتوفرة', default=0)
     tenant = models.ForeignKey(
         'core.Tenant',
         on_delete=models.CASCADE,

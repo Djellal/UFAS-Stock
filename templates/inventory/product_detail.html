@@ -13,13 +13,42 @@
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
-                    <tr><th>الرمز:</th><td><code>{{ product.code }}</code></td></tr>
-                    <tr><th>الاسم:</th><td>{{ product.name }}</td></tr>
-                    <tr><th>الصنف:</th><td>{{ product.category.name|default:"-" }}</td></tr>
-                    <tr><th>الطبيعة:</th><td>{{ product.get_nature_display }}</td></tr>
-                    <tr><th>الوحدة:</th><td>{{ product.get_unit_display }}</td></tr>
-                    <tr><th>السعر:</th><td>{{ product.unit_price|intcomma }} دج</td></tr>
-                    <tr><th>الحد الأدنى:</th><td>{{ product.min_stock }}</td></tr>
+                    <tr>
+                        <th>الرمز:</th>
+                        <td><code>{{ product.code }}</code></td>
+                    </tr>
+                    <tr>
+                        <th>الاسم:</th>
+                        <td>{{ product.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>الصنف:</th>
+                        <td>{{ product.category.name|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>الطبيعة:</th>
+                        <td>{{ product.get_nature_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>الوحدة:</th>
+                        <td>{{ product.get_unit_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>السعر:</th>
+                        <td>{{ product.unit_price|intcomma }} دج</td>
+                    </tr>
+                    <tr>
+                        <th>الكمية الأولية:</th>
+                        <td>{{ product.initial_quantity|default:0 }}</td>
+                    </tr>
+                    <tr>
+                        <th>الكمية المتوفرة:</th>
+                        <td>{{ product.stock_quantity|default:0 }}</td>
+                    </tr>
+                    <tr>
+                        <th>الحد الأدنى:</th>
+                        <td>{{ product.min_stock }}</td>
+                    </tr>
                 </table>
                 {% if product.description %}
                 <hr>
@@ -32,7 +61,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-lg-8">
         {% if product.is_asset and items %}
         <div class="card">

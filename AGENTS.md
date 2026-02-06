@@ -113,6 +113,8 @@ python manage.py test
 ### Inventory App
 - **Category:** Hierarchical product categories (global or tenant-specific)
 - **Product:** Base product definition (nature: asset or consumable)
+    - `initial_quantity` - Initial stock quantity
+    - `stock_quantity` - Current stock quantity (updated automatically)
 - **InventoryItem:** Individual tracked assets with inventory_number and serial_number
 - **StockMovement:** Quantity tracking for consumables
 - **Supplier:** Vendor information
@@ -125,6 +127,14 @@ python manage.py test
 - **DisposalVoucher:** Damaged/disposed items (وصل إتلاف)
 
 Each voucher has associated Item and Asset models for line items.
+
+## Stock Quantity Management
+
+Product `stock_quantity` is automatically updated when vouchers are confirmed:
+- **EntryVoucher (confirmed):** `stock_quantity += quantity`
+- **ExitVoucher (confirmed):** `stock_quantity -= quantity` (with stock validation)
+- **ReturnVoucher (confirmed):** `stock_quantity += quantity`
+- **DisposalVoucher (confirmed):** `stock_quantity -= quantity` (with stock validation)
 
 ## Multi-Tenancy Pattern
 
@@ -151,9 +161,13 @@ The `TenantMiddleware` sets the current tenant in thread-local storage.
 | `/inventory/suppliers/` | inventory | Suppliers |
 | `/inventory/departments/` | inventory | Departments |
 | `/transactions/entry/` | transactions | Entry vouchers |
+| `/transactions/entry/<pk>/confirm/` | transactions | Confirm entry voucher |
 | `/transactions/exit/` | transactions | Exit vouchers |
+| `/transactions/exit/<pk>/confirm/` | transactions | Confirm exit voucher |
 | `/transactions/return/` | transactions | Return vouchers |
+| `/transactions/return/<pk>/confirm/` | transactions | Confirm return voucher |
 | `/transactions/disposal/` | transactions | Disposal vouchers |
+| `/transactions/disposal/<pk>/confirm/` | transactions | Confirm disposal voucher |
 | `/reports/` | reports | Reports index |
 | `/reports/inventory/` | reports | Inventory report |
 | `/admin/` | django.admin | Django admin panel |

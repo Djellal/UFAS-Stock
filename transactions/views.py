@@ -33,6 +33,17 @@ def generate_voucher_number(prefix, tenant):
     return f"{prefix}-{tenant.code}-{year}-{timezone.now().strftime('%m%d%H%M%S')}"
 
 
+def update_product_stock(product, quantity_change):
+    """Update product stock_quantity by the given amount"""
+    product.stock_quantity = max(0, product.stock_quantity + quantity_change)
+    product.save(update_fields=['stock_quantity'])
+
+
+def get_product_total_quantity(product, items):
+    """Calculate total quantity from voucher items for a product"""
+    return sum(item.quantity for item in items if item.product.id == product.id)
+
+
 # ============== Entry Vouchers ==============
 
 @login_required
@@ -171,9 +182,15 @@ def entry_voucher_confirm(request, pk):
         messages.error(request, 'لا يمكن تأكيد هذا الوصل')
         return redirect('entry_voucher_detail', pk=pk)
     
-    voucher.status = 'confirmed'
-    voucher.confirmed_by = request.user
-    voucher.save()
+    with transaction.atomic():
+        # Update stock quantities for all products
+        for item in voucher.items.all():
+            if item.product.nature == 'consumable':
+                update_product_stock(item.product, item.quantity)
+        
+        voucher.status = 'confirmed'
+        voucher.confirmed_by = request.user
+        voucher.save()
     
     messages.success(request, 'تم تأكيد وصل الدخول بنجاح')
     return redirect('entry_voucher_detail', pk=pk)
@@ -292,6 +309,36 @@ def exit_voucher_detail(request, pk):
     })
 
 
+@login_required
+def exit_voucher_confirm(request, pk):
+    """تأكيد وصل الإخراج"""
+    voucher = get_object_or_404(ExitVoucher, pk=pk)
+    
+    if voucher.status != 'draft':
+        messages.error(request, 'لا يمكن تأكيد هذا الوصل')
+        return redirect('exit_voucher_detail', pk=pk)
+    
+    with transaction.atomic():
+        # Check sufficient stock for consumables
+        for item in voucher.items.all():
+            if item.product.nature == 'consumable':
+                if item.product.stock_quantity < item.quantity:
+                    messages.error(request, f'لا يوجد مخزون كافٍ للمنتج {item.product.name}')
+                    return redirect('exit_voucher_detail', pk=pk)
+        
+        # Update stock quantities for all products
+        for item in voucher.items.all():
+            if item.product.nature == 'consumable':
+                update_product_stock(item.product, -item.quantity)
+        
+        voucher.status = 'confirmed'
+        voucher.confirmed_by = request.user
+        voucher.save()
+    
+    messages.success(request, 'تم تأكيد وصل الإخراج بنجاح')
+    return redirect('exit_voucher_detail', pk=pk)
+
+
 # ============== Return Vouchers ==============
 
 @login_required
@@ -408,6 +455,29 @@ def return_voucher_detail(request, pk):
     })
 
 
+@login_required
+def return_voucher_confirm(request, pk):
+    """تأكيد وصل الإرجاع"""
+    voucher = get_object_or_404(ReturnVoucher, pk=pk)
+    
+    if voucher.status != 'draft':
+        messages.error(request, 'لا يمكن تأكيد هذا الوصل')
+        return redirect('return_voucher_detail', pk=pk)
+    
+    with transaction.atomic():
+        # Update stock quantities for all products
+        for item in voucher.items.all():
+            if item.product.nature == 'consumable':
+                update_product_stock(item.product, item.quantity)
+        
+        voucher.status = 'confirmed'
+        voucher.confirmed_by = request.user
+        voucher.save()
+    
+    messages.success(request, 'تم تأكيد وصل الإرجاع بنجاح')
+    return redirect('return_voucher_detail', pk=pk)
+
+
 # ============== Disposal Vouchers ==============
 
 @login_required
@@ -506,3 +576,33 @@ def disposal_voucher_detail(request, pk):
         'voucher': voucher,
         'items': items,
     })
+
+
+@login_required
+def disposal_voucher_confirm(request, pk):
+    """تأكيد وصل الإتلاف"""
+    voucher = get_object_or_404(DisposalVoucher, pk=pk)
+    
+    if voucher.status != 'draft':
+        messages.error(request, 'لا يمكن تأكيد هذا الوصل')
+        return redirect('disposal_voucher_detail', pk=pk)
+    
+    with transaction.atomic():
+        # Check sufficient stock for consumables
+        for item in voucher.items.all():
+            if item.product.nature == 'consumable':
+                if item.product.stock_quantity < item.quantity:
+                    messages.error(request, f'لا يوجد مخزون كافٍ للمنتج {item.product.name}')
+                    return redirect('disposal_voucher_detail', pk=pk)
+        
+        # Update stock quantities for all products
+        for item in voucher.items.all():
+            if item.product.nature == 'consumable':
+                update_product_stock(item.product, -item.quantity)
+        
+        voucher.status = 'confirmed'
+        voucher.confirmed_by = request.user
+        voucher.save()
+    
+    messages.success(request, 'تم تأكيد وصل الإتلاف بنجاح')
+    return redirect('disposal_voucher_detail', pk=pk)
