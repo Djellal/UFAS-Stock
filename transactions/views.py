@@ -207,6 +207,9 @@ def entry_voucher_confirm(request, pk):
         for item in voucher.items.all():
             if item.product.nature == 'consumable':
                 update_product_stock(item.product, item.quantity)
+            elif item.product.nature == 'asset':
+                # Update stock for assets based on number of inventory items created
+                update_product_stock(item.product, item.quantity)
         
         voucher.status = 'confirmed'
         voucher.confirmed_by = request.user
@@ -350,6 +353,9 @@ def exit_voucher_confirm(request, pk):
         for item in voucher.items.all():
             if item.product.nature == 'consumable':
                 update_product_stock(item.product, -item.quantity)
+            elif item.product.nature == 'asset':
+                # Update stock for assets based on item quantity
+                update_product_stock(item.product, -item.quantity)
         
         voucher.status = 'confirmed'
         voucher.confirmed_by = request.user
@@ -489,6 +495,9 @@ def return_voucher_confirm(request, pk):
         for item in voucher.items.all():
             if item.product.nature == 'consumable':
                 update_product_stock(item.product, item.quantity)
+            elif item.product.nature == 'asset':
+                # Update stock for returned assets
+                update_product_stock(item.product, item.quantity)
         
         voucher.status = 'confirmed'
         voucher.confirmed_by = request.user
@@ -618,6 +627,9 @@ def disposal_voucher_confirm(request, pk):
         # Update stock quantities for all products
         for item in voucher.items.all():
             if item.product.nature == 'consumable':
+                update_product_stock(item.product, -item.quantity)
+            elif item.product.nature == 'asset':
+                # Update stock for disposed assets
                 update_product_stock(item.product, -item.quantity)
         
         voucher.status = 'confirmed'

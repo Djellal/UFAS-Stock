@@ -33,6 +33,11 @@
         </div>
         
         <div class="d-flex flex-column gap-2">
+            {% if voucher.status == 'draft' %}
+            <a href="{% url 'exit_voucher_confirm' voucher.pk %}" class="btn btn-success" onclick="return confirm('هل أنت متأكد من تأكيد هذا الوصل؟');">
+                <i class="bi bi-check-circle me-1"></i> تأكيد الوصل
+            </a>
+            {% endif %}
             <a href="{% url 'voucher_pdf' 'exit' voucher.pk %}" class="btn btn-outline-danger" target="_blank">
                 <i class="bi bi-file-pdf me-1"></i> طباعة PDF
             </a>
